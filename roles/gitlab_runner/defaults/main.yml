@@ -1,0 +1,7 @@
+gitlab_runner__description: '{{ ansible_facts["nodename"] }}'
+gitlab_runner__tag_list: []
+
+# -----------------------------------------------------------------------------
+
+gitlab_runner__python__modules__dependent_var:
+  - 'python3-gitlab'

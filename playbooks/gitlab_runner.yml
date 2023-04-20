@@ -1,0 +1,17 @@
+- name: 'Install and configure GitLab Runner'
+  hosts:
+    - 'lfops_gitlab_runner'
+
+  roles:
+
+    - role: 'linuxfabrik.lfops.python'
+      python__modules__dependent_var:
+        - '{{ gitlab_runner__python__modules__dependent_var | default([]) }}'
+      when:
+        - 'not gitlab_runner__skip_python | default(false)'
+
+    - role: 'linuxfabrik.lfops.repo_gitlab_runner'
+      when:
+        - 'not gitlab_runner__skip_repo_gitlab_runner | d(false)'
+
+    - role: 'linuxfabrik.lfops.gitlab_runner'

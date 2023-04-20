@@ -1,0 +1,20 @@
+- block:
+
+  - name: 'install gitlab-runner'
+    ansible.builtin.package:
+      name: 'gitlab-runner'
+      state: 'present'
+
+  # TODO: does not seem to work
+  # maybe use https://docs.gitlab.com/runner/register/index.html#one-line-registration-command directly?
+  - name: 'Register runner'
+    community.general.gitlab_runner:
+      api_url: '{{ gitlab_runner__api_url }}'
+      api_token: '{{ gitlab_runner__api_token }}'
+      registration_token: '{{ gitlab_runner__registration_token }}'
+      description: '{{ gitlab_runner__description }}'
+      state: 'present'
+      tag_list: '{{ gitlab_runner__tag_list }}'
+
+  tags:
+    - 'gitlab_runner'
