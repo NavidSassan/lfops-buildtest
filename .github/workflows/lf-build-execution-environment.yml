@@ -1,6 +1,11 @@
 name: 'Linuxfabrik: Build Execution Environment'
 
 on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*.*.*' # any vX.Y.Z tag
   workflow_dispatch: # yamllint disable-line rule:empty-values
 
 # modify the default permissions granted to the GITHUB_TOKEN
@@ -31,12 +36,30 @@ jobs:
 
       - name: 'Store the lowercase repository name'
         run: |
-          echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
+          echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: 'Determine image tags'
+        id: 'determine-tags'
+        run: |
+          # tag event?
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              # strip "refs/tags/"
+              FULL_TAG="${GITHUB_REF#refs/tags/}"
+              # strip leading "v" if present
+              SEMVER="${FULL_TAG#v}"
+              echo "TAG=${SEMVER}" >> $GITHUB_ENV
+              echo "TAGS=${SEMVER} latest" >> $GITHUB_ENV
+          else
+              # non-tag (push/main or manual)
+              echo "TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+              echo "TAGS=${GITHUB_SHA} dev" >> $GITHUB_ENV
+          fi
 
       - name: 'Build Execution Environment'
         run: |
           ansible-builder build \
-            --tag 'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ github.sha }}'
+            --tag 'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG }}' \
+            -vvv
 
       - name: 'Push to GitHub Container Registry'
         id: 'push-to-ghcr'
@@ -44,7 +67,7 @@ jobs:
         with:
           registry: 'ghcr.io'
           image: '${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee'
-          tags: '${{ github.sha }}'
+          tags: '${{ env.TAGS }}'
 
       - name: 'Show pushed image path'
         run: 'echo "LFOps Execution Environment published to ${{ steps.push-to-ghcr.outputs.registry-path }}"'
