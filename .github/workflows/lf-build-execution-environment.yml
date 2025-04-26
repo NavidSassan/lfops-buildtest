@@ -47,19 +47,25 @@ jobs:
               FULL_TAG="${GITHUB_REF#refs/tags/}"
               # strip leading "v" if present
               SEMVER="${FULL_TAG#v}"
-              echo "TAG=${SEMVER}" >> $GITHUB_ENV
-              echo "TAGS=${SEMVER} latest" >> $GITHUB_ENV
+              echo "TAG1=${SEMVER}" >> $GITHUB_ENV
+              echo "TAG2=latest" >> $GITHUB_ENV
           else
               # non-tag (push/main or manual)
-              echo "TAG=${GITHUB_SHA}" >> $GITHUB_ENV
-              echo "TAGS=${GITHUB_SHA} dev" >> $GITHUB_ENV
+              echo "TAG1=${GITHUB_SHA}" >> $GITHUB_ENV
+              echo "TAG2=dev" >> $GITHUB_ENV
           fi
 
       - name: 'Build Execution Environment'
         run: |
           ansible-builder build \
-            --tag 'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG }}' \
+            --tag 'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG1 }}' \
             -vvv
+
+      - name: 'Re-tag the image'
+        run: |
+          podman tag \
+            'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG1 }}' \
+            'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG2 }}'
 
       - name: 'Push to GitHub Container Registry'
         id: 'push-to-ghcr'
@@ -67,7 +73,7 @@ jobs:
         with:
           registry: 'ghcr.io'
           image: '${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee'
-          tags: '${{ env.TAGS }}'
+          tags: '${{ env.TAG1 }} ${{ env.TAG2 }}'
 
       - name: 'Show pushed image path'
         run: 'echo "LFOps Execution Environment published to ${{ steps.push-to-ghcr.outputs.registry-path }}"'
