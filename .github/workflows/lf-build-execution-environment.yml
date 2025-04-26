@@ -29,17 +29,21 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install ansible-builder
 
+      - name: 'Store the lowercase repository name'
+        run: |
+          echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
+
       - name: 'Build Execution Environment'
         run: |
           ansible-builder build \
-            --tag 'ghcr.io/${{ github.repository_owner }}/lfops_ee:${{ github.sha }}'
+            --tag 'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ github.sha }}'
 
       - name: 'Push to GitHub Container Registry'
         id: 'push-to-ghcr'
         uses: 'redhat-actions/push-to-registry@v2'
         with:
           registry: 'ghcr.io'
-          image: '${{ github.repository_owner }}/lfops_ee'
+          image: '${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee'
           tags: '${{ github.sha }}'
 
       - name: 'Show pushed image path'
