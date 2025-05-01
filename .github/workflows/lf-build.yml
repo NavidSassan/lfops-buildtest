@@ -44,12 +44,12 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
               # On a Git‐tag push: semver & “latest”
-              echo "TAG1=${LFOPS_VERSION}" >> $GITHUB_ENV
+              echo "TAG1=${{ env.LFOPS_VERSION }}" >> $GITHUB_ENV
               echo "TAG2=latest" >> $GITHUB_ENV
           else
               # On any other run: semver+short‐sha & “dev”
               SHORT_SHA="${GITHUB_SHA:0:7}"
-              echo "TAG1=${LFOPS_VERSION}+${SHORT_SHA}" >> $GITHUB_ENV
+              echo "TAG1=${{ env.LFOPS_VERSION }}+${SHORT_SHA}" >> $GITHUB_ENV
               echo "TAG2=dev" >> $GITHUB_ENV
           fi
 
