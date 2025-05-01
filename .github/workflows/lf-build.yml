@@ -11,6 +11,9 @@ on:
     # or when a version tag is pushed
     tags:
       - 'v*.*.*' # any vX.Y.Z tag
+  create:
+    tags:
+      - 'v*.*.*' # any vX.Y.Z tag
   workflow_dispatch: # yamllint disable-line rule:empty-values
 
 # modify the default permissions granted to the GITHUB_TOKEN
