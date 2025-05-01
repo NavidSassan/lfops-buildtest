@@ -51,7 +51,7 @@ jobs:
           else
               # On any other run: semver+short‐sha & “dev”
               SHORT_SHA="${GITHUB_SHA:0:7}"
-              TAG1="${{ env.LFOPS_VERSION }}+${SHORT_SHA}" >> $GITHUB_ENV
+              TAG1="${{ env.LFOPS_VERSION }}-${SHORT_SHA}" >> $GITHUB_ENV
               echo "TAG1=$TAG1" >> $GITHUB_ENV
               echo "TAG2=dev" >> $GITHUB_ENV
           fi
