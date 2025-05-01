@@ -2,7 +2,6 @@
 # 2025050101
 
 set -e
-set -x
 
 if ! command -v jq &> /dev/null; then
     sudo apt update
