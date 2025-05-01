@@ -59,7 +59,7 @@ jobs:
               echo "TAG2=dev" >> $GITHUB_ENV
           fi
 
-          yq eval --inplace '.version = strenv(TAG1)' galaxy.yml
+          sed --in-place --regexp-extended "s/version: '[^']*'/version: '$TAG1'/" galaxy.yml
 
       - name: 'Build Collection'
         run: |
