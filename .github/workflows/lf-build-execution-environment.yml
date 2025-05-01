@@ -43,27 +43,26 @@ jobs:
         run: |
           echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
-      - name: 'Determine image tags'
-        id: 'determine-tags'
+      - name: 'Fetch the current version from Github'
+        run: 'build/get-latest-version.sh'
+
+      - name: 'Determine image tags and adjust version in galaxy.yml'
         run: |
-          # tag event?
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-              # strip "refs/tags/"
-              FULL_TAG="${GITHUB_REF#refs/tags/}"
-              # strip leading "v" if present
-              SEMVER="${FULL_TAG#v}"
-              echo "TAG1=${SEMVER}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
+              # On a Git‐tag push: semver & “latest”
+              echo "TAG1=${LFOPS_VERSION}" >> $GITHUB_ENV
               echo "TAG2=latest" >> $GITHUB_ENV
           else
-              # non-tag (push/main or manual)
-              echo "TAG1=${GITHUB_SHA}" >> $GITHUB_ENV
+              # On any other run: semver+short‐sha & “dev”
+              SHORT_SHA="${GITHUB_SHA:0:7}"
+              echo "TAG1=${LFOPS_VERSION}+${SHORT_SHA}" >> $GITHUB_ENV
               echo "TAG2=dev" >> $GITHUB_ENV
           fi
 
+          yq eval --inplace '.version = strenv(TAG1)' galaxy.yml
+
       - name: 'Build Collection'
         run: |
-          sed --in-place --regexp-extended "s/version: '[^']*'/version: '$TAG1'/" galaxy.yml
-
           ansible-galaxy collection build
           cp linuxfabrik-lfops-${TAG1}.tar.gz linuxfabrik-lfops.tar.gz
 
