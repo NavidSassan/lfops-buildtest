@@ -42,6 +42,9 @@ jobs:
 
       - name: 'Determine image tags and adjust version in galaxy.yml'
         run: |
+          echo "LFOPS_VERSION=$LFOPS_VERSION"
+          echo "LFOPS_VERSION=${{ env.LFOPS_VERSION }}"
+
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
               # On a Git‐tag push: semver & “latest”
               echo "TAG1=${{ env.LFOPS_VERSION }}" >> $GITHUB_ENV
