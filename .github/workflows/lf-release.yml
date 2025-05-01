@@ -5,7 +5,7 @@ on:
 
 # modify the default permissions granted to the GITHUB_TOKEN
 permissions:
-  contents: 'write' # to push to the repo
+  contents: 'write' # to push to the repo and create the release
 
 jobs:
   release:
@@ -34,10 +34,9 @@ jobs:
           git push --tags
 
       - name: 'Create GitHub Release'
-        uses: 'actions/create-release@v1'
+        uses: 'softprops/action-gh-release@v2'
         with:
           tag_name: 'v${{ env.VERSION }}'
-          release_name: "Release v${{ env.VERSION }}"
           body: |
             Release Notes/CHANGELOG at https://github.com/Linuxfabrik/lfops/blob/main/CHANGELOG.md
           prerelease: false
