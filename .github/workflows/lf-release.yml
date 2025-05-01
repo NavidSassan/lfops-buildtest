@@ -1,0 +1,46 @@
+name: 'Linuxfabrik: Release'
+
+on:
+  workflow_dispatch: # yamllint disable-line rule:empty-values
+
+# modify the default permissions granted to the GITHUB_TOKEN
+permissions:
+  contents: 'read' # to checkout the code
+  packages: 'write' # to push to the repo
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 'git clone https://github.com/Linuxfabrik/THIS-REPO'
+        uses: 'actions/checkout@v4'
+
+      - name: 'Fetch the current version from Github'
+        run: 'build/get-latest-version.sh'
+
+      - name: 'Set new version in galaxy.yml'
+        run: |
+          sed --in-place --regexp-extended "s/version: '[^']*'/version: '$LFOPS_VERSION'/" galaxy.yml
+
+      - name: 'Commit galaxy.yml and create new tag'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add galaxy.yml
+          git commit --message "chore: bump galaxy.yml to ${{ env.LFOPS_VERSION }} [skip ci]"
+
+          git tag "v$LFOPS_VERSION"
+
+          # push everything at once
+          git push origin HEAD --tags
+
+      - name: 'Create GitHub Release'
+        uses: 'actions/create-release@v1'
+        with:
+          tag_name: 'v${{ env.LFOPS_VERSION }}'
+          release_name: "Release v${{ env.LFOPS_VERSION }}"
+          body: |
+            Release Notes/CHANGELOG at https://github.com/Linuxfabrik/lfops/blob/main/CHANGELOG.md
+          prerelease: false

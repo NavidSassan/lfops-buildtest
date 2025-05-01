@@ -1,4 +1,4 @@
-name: 'Linuxfabrik: Build Execution Environment'
+name: 'Linuxfabrik: Build Collection and EE'
 
 on:
   push:
@@ -19,11 +19,12 @@ permissions:
   packages: 'write' # to push to GitHub Container Registry
 
 jobs:
-  build-ee:
-    runs-on:
-      - 'ubuntu-latest'
+
+  build:
+    runs-on: 'ubuntu-latest'
 
     steps:
+
       - name: 'git clone https://github.com/Linuxfabrik/THIS-REPO'
         uses: 'actions/checkout@v4'
 
@@ -33,15 +34,6 @@ jobs:
           registry: 'ghcr.io'
           username: '${{ github.actor }}'
           password: '${{ secrets.GITHUB_TOKEN }}'
-
-      - name: 'Install Ansible Builder'
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install ansible-builder
-
-      - name: 'Store the lowercase repository name'
-        run: |
-          echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
       - name: 'Fetch the current version from Github'
         run: 'build/get-latest-version.sh'
@@ -60,6 +52,15 @@ jobs:
           fi
 
           sed --in-place --regexp-extended "s/version: '[^']*'/version: '$TAG1'/" galaxy.yml
+
+      - name: 'Store the lowercase repository name'
+        run: |
+          echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: 'Install Ansible Builder'
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install ansible-builder
 
       - name: 'Build Collection'
         run: |
