@@ -42,9 +42,6 @@ jobs:
 
       - name: 'Determine image tags and adjust version in galaxy.yml'
         run: |
-          echo "LFOPS_VERSION=$LFOPS_VERSION"
-          echo "LFOPS_VERSION=${{ env.LFOPS_VERSION }}"
-
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
               # On a Git‐tag push: semver & “latest”
               echo "TAG1=${{ env.LFOPS_VERSION }}" >> $GITHUB_ENV
@@ -56,7 +53,7 @@ jobs:
               echo "TAG2=dev" >> $GITHUB_ENV
           fi
 
-          sed --in-place --regexp-extended "s/version: '[^']*'/version: '$TAG1'/" galaxy.yml
+          sed --in-place --regexp-extended "s/version: '[^']*'/version: '${{ env.TAG1 }}'/" galaxy.yml
           grep '^version' galaxy.yml
 
       - name: 'Store the lowercase repository name'
@@ -71,7 +68,7 @@ jobs:
       - name: 'Build Collection'
         run: |
           ansible-galaxy collection build
-          cp linuxfabrik-lfops-${TAG1}.tar.gz linuxfabrik-lfops.tar.gz
+          cp linuxfabrik-lfops-${{ env.TAG1 }}.tar.gz linuxfabrik-lfops.tar.gz
 
       - name: 'Build Execution Environment'
         run: |
