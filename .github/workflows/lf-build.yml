@@ -8,12 +8,10 @@ on:
     paths:
       - 'execution-environment.yml'
       - 'requirements.yml'
-    # or when a version tag is pushed
-    tags:
-      - 'v*.*.*' # any vX.Y.Z tag
+  # or when a version tag is pushed
   create:
     tags:
-      - 'v*.*.*' # any vX.Y.Z tag
+      - 'v*'
   workflow_dispatch: # yamllint disable-line rule:empty-values
 
 # modify the default permissions granted to the GITHUB_TOKEN
