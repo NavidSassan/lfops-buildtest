@@ -5,12 +5,13 @@ on:
 
 # modify the default permissions granted to the GITHUB_TOKEN
 permissions:
+  actions: 'read' # to get the latest version from the artifact
   contents: 'read' # to checkout the code
   packages: 'write' # to push to the repo
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: 'ubuntu-latest'
 
     steps:
 
