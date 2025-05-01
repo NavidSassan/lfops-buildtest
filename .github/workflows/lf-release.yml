@@ -21,26 +21,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Set new version in galaxy.yml'
+      - name: 'Create git tag'
         run: |
-
           # strip the last .123 to for semver compatibility
           VERSION="${LFOPS_VERSION%.*}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-          sed --in-place --regexp-extended "s/version: '[^']*'/version: '$VERSION'/" galaxy.yml
-
-      - name: 'Commit galaxy.yml and create new tag'
-        run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add galaxy.yml
-          git commit --message "chore: bump galaxy.yml to ${{ env.VERSION }} [skip ci]"
 
           git tag "v$VERSION"
-
-          # push everything at once
-          git push origin HEAD --tags
+          git push --tags
 
       - name: 'Create GitHub Release'
         uses: 'actions/create-release@v1'
