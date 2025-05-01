@@ -54,6 +54,7 @@ jobs:
           fi
 
           sed --in-place --regexp-extended "s/version: '[^']*'/version: '$TAG1'/" galaxy.yml
+          grep '^version' galaxy.yml
 
       - name: 'Store the lowercase repository name'
         run: |
