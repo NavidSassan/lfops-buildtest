@@ -37,7 +37,7 @@ jobs:
           password: '${{ secrets.GITHUB_TOKEN }}'
 
       - name: 'Fetch the current version from Github'
-        run: 'build/get-latest-version.sh'
+        run: '/bin/bash build/get-latest-version.sh'
 
       - name: 'Determine image tags and adjust version in galaxy.yml'
         run: |

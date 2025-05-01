@@ -19,7 +19,7 @@ jobs:
         uses: 'actions/checkout@v4'
 
       - name: 'Fetch the current version from Github'
-        run: 'build/get-latest-version.sh'
+        run: '/bin/bash build/get-latest-version.sh'
 
       - name: 'Set new version in galaxy.yml'
         run: |

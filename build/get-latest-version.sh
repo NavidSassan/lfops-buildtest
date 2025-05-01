@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 2025022001
+# 2025050101
 
 set -e
 set -x
@@ -20,6 +20,7 @@ while true; do
       --header "Authorization: Bearer $GITHUB_TOKEN" \
       --header "Accept: application/vnd.github.v3+json" \
       "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100&page=$PAGE")
+    echo -e "RESPONSE:\n$RESPONSE"
 
     # Check if there are any artifacts on this page.
     ARTIFACT_COUNT=$(echo "$RESPONSE" | jq ".artifacts | length")
