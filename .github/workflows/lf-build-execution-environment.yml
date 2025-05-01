@@ -1,6 +1,16 @@
 name: 'Linuxfabrik: Build Execution Environment'
 
 on:
+  push:
+    # run for main if execution-environment.yml or requirements.yml changes
+    branches:
+      - 'main'
+    paths:
+      - 'execution-environment.yml'
+      - 'requirements.yml'
+    # or when a version tag is pushed
+    tags:
+      - 'v*.*.*' # any vX.Y.Z tag
   workflow_dispatch: # yamllint disable-line rule:empty-values
 
 # modify the default permissions granted to the GITHUB_TOKEN
@@ -29,18 +39,52 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install ansible-builder
 
+      - name: 'Store the lowercase repository name'
+        run: |
+          echo "GITHUB_REPOSITORY_OWNER_LOWERCASE=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: 'Fetch the current version from Github'
+        run: 'build/get-latest-version.sh'
+
+      - name: 'Determine image tags and adjust version in galaxy.yml'
+        run: |
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
+              # On a Git‐tag push: semver & “latest”
+              echo "TAG1=${LFOPS_VERSION}" >> $GITHUB_ENV
+              echo "TAG2=latest" >> $GITHUB_ENV
+          else
+              # On any other run: semver+short‐sha & “dev”
+              SHORT_SHA="${GITHUB_SHA:0:7}"
+              echo "TAG1=${LFOPS_VERSION}+${SHORT_SHA}" >> $GITHUB_ENV
+              echo "TAG2=dev" >> $GITHUB_ENV
+          fi
+
+          yq eval --inplace '.version = strenv(TAG1)' galaxy.yml
+
+      - name: 'Build Collection'
+        run: |
+          ansible-galaxy collection build
+          cp linuxfabrik-lfops-${TAG1}.tar.gz linuxfabrik-lfops.tar.gz
+
       - name: 'Build Execution Environment'
         run: |
           ansible-builder build \
-            --tag 'ghcr.io/${{ github.repository_owner }}/lfops_ee:${{ github.sha }}'
+            --tag 'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG1 }}' \
+            -vvv
+
+      - name: 'Re-tag the image'
+        run: |
+          podman tag \
+            'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG1 }}' \
+            'ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee:${{ env.TAG2 }}'
 
       - name: 'Push to GitHub Container Registry'
         id: 'push-to-ghcr'
         uses: 'redhat-actions/push-to-registry@v2'
         with:
           registry: 'ghcr.io'
-          image: '${{ github.repository_owner }}/lfops_ee'
-          tags: '${{ github.sha }}'
+          image: '${{ env.GITHUB_REPOSITORY_OWNER_LOWERCASE }}/lfops_ee'
+          tags: '${{ env.TAG1 }} ${{ env.TAG2 }}'
 
       - name: 'Show pushed image path'
         run: 'echo "LFOps Execution Environment published to ${{ steps.push-to-ghcr.outputs.registry-path }}"'
