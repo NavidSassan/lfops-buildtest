@@ -5,8 +5,7 @@ on:
 
 # modify the default permissions granted to the GITHUB_TOKEN
 permissions:
-  contents: 'read' # to checkout the code
-  packages: 'write' # to push to the repo
+  contents: 'write' # to push to the repo
 
 jobs:
   release:
