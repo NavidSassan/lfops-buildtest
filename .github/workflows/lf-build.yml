@@ -1,9 +1,13 @@
 name: 'Linuxfabrik: Build Collection and EE'
 
 on:
-  # todo how should the name of the container look for non-releases? ask for the next semver, and append pre-release info
   # pre-release
-  # workflow_dispatch: # yamllint disable-line rule:empty-values
+  workflow_dispatch: # yamllint disable-line rule:empty-values
+    inputs:
+      prerelease_version:
+        description: 'Pre-release version (semver, no leading "v", e.g. 1.4.0-beta)'
+        required: true
+        type: 'string'
 
   # release
   push:
@@ -37,19 +41,19 @@ jobs:
           set -x
 
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
-              # On a Git‐tag push: semver & “latest”
+              # On a Git‐tag push: semver & "latest"
               TAG1="${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
               echo "TAG1=$TAG1" >> $GITHUB_ENV
               echo "TAG2=latest" >> $GITHUB_ENV
           else
-              # On any other run: semver+short‐sha & “dev” # TODO
-              SHORT_SHA="${GITHUB_SHA:0:7}"
-              TAG1="$VERSION-${SHORT_SHA}" >> $GITHUB_ENV
+              # On any other run: semver+short‐sha & "dev"
+              TAG1="${{ github.event.inputs.prerelease_version }}" >> $GITHUB_ENV
               echo "TAG1=$TAG1" >> $GITHUB_ENV
               echo "TAG2=dev" >> $GITHUB_ENV
           fi
 
           sed --in-place --regexp-extended "s/version: '[^']*'/version: '$TAG1'/" galaxy.yml
+          # helpful for debugging
           grep '^version' galaxy.yml
 
       - name: 'Store the lowercase repository name'
