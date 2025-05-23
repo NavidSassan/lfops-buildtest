@@ -1,18 +1,21 @@
 name: 'Linuxfabrik: Build Collection and EE'
 
 on:
+  # todo how should the name of the container look for non-releases?
+  # pre-release / testing
+  # workflow_dispatch: # yamllint disable-line rule:empty-values
+  # push:
+  #   # run for main if execution-environment.yml or requirements.yml changes
+  #   branches:
+  #     - 'main'
+  #   paths:
+  #     - 'execution-environment.yml'
+  #     - 'requirements.yml'
+
+  # release
   push:
-    # run for main if execution-environment.yml or requirements.yml changes
-    branches:
-      - 'main'
-    paths:
-      - 'execution-environment.yml'
-      - 'requirements.yml'
-  # or when a version tag is pushed
-  create:
     tags:
       - 'v*'
-  workflow_dispatch: # yamllint disable-line rule:empty-values
 
 # modify the default permissions granted to the GITHUB_TOKEN
 permissions:
@@ -26,7 +29,7 @@ jobs:
 
     steps:
 
-      - name: 'git clone https://github.com/Linuxfabrik/THIS-REPO'
+      - name: 'git clone https://github.com/Linuxfabrik/lfops'
         uses: 'actions/checkout@v4'
 
       - name: 'Log in to GitHub Container Registry'
@@ -36,25 +39,17 @@ jobs:
           username: '${{ github.actor }}'
           password: '${{ secrets.GITHUB_TOKEN }}'
 
-      - name: 'Fetch the current version from Github'
-        run: 'build/get-latest-version.sh'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: 'Determine image tags and adjust version in galaxy.yml'
         run: |
           set -x
 
-          # strip the last .123 to for semver compatibility
-          VERSION="${LFOPS_VERSION%.*}"
-
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
               # On a Git‐tag push: semver & “latest”
-              TAG1="$VERSION" >> $GITHUB_ENV
+              TAG1="${{ github.ref_name }}" >> $GITHUB_ENV
               echo "TAG1=$TAG1" >> $GITHUB_ENV
               echo "TAG2=latest" >> $GITHUB_ENV
           else
-              # On any other run: semver+short‐sha & “dev”
+              # On any other run: semver+short‐sha & “dev” # TODO
               SHORT_SHA="${GITHUB_SHA:0:7}"
               TAG1="$VERSION-${SHORT_SHA}" >> $GITHUB_ENV
               echo "TAG1=$TAG1" >> $GITHUB_ENV
