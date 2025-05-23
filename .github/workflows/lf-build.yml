@@ -1,16 +1,9 @@
 name: 'Linuxfabrik: Build Collection and EE'
 
 on:
-  # todo how should the name of the container look for non-releases?
-  # pre-release / testing
+  # todo how should the name of the container look for non-releases? ask for the next semver, and append pre-release info
+  # pre-release
   # workflow_dispatch: # yamllint disable-line rule:empty-values
-  # push:
-  #   # run for main if execution-environment.yml or requirements.yml changes
-  #   branches:
-  #     - 'main'
-  #   paths:
-  #     - 'execution-environment.yml'
-  #     - 'requirements.yml'
 
   # release
   push:
@@ -45,8 +38,7 @@ jobs:
 
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
               # On a Git‐tag push: semver & “latest”
-              TAG1="${{ github.ref_name }}" >> $GITHUB_ENV
-              echo "TAG1=$TAG1" >> $GITHUB_ENV
+              echo "TAG1=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
               echo "TAG2=latest" >> $GITHUB_ENV
           else
               # On any other run: semver+short‐sha & “dev” # TODO
