@@ -38,7 +38,8 @@ jobs:
 
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
               # On a Git‐tag push: semver & “latest”
-              echo "TAG1=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+              TAG1="${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+              echo "TAG1=$TAG1" >> $GITHUB_ENV
               echo "TAG2=latest" >> $GITHUB_ENV
           else
               # On any other run: semver+short‐sha & “dev” # TODO
