@@ -79,7 +79,8 @@ jobs:
         run: |
           ansible-galaxy collection publish \
             linuxfabrik-lfops-${{ env.TAG1 }}.tar.gz \
-            --server https://galaxy.ansible.com
+            --server https://galaxy.ansible.com \
+            --api-key "$ANSIBLE_GALAXY_TOKEN"
 
       - name: 'Publish to Galaxy (Dev)'
         if: "${{ github.event_name == 'workflow_dispatch' }}"
@@ -88,7 +89,8 @@ jobs:
         run: |
           ansible-galaxy collection publish \
             linuxfabrik-lfops-${{ env.TAG1 }}.tar.gz \
-            --server https://galaxy-dev.ansible.com
+            --server https://galaxy-dev.ansible.com \
+            --api-key "$ANSIBLE_GALAXY_TOKEN"
 
       - name: 'Build Execution Environment'
         run: |
